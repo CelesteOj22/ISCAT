@@ -27,8 +27,8 @@ class SonarQube(IHerramienta):
                 print("El proyecto " + projectKey + " ha sido analizado con exito!")
         except:
             print("Ha ocurrido un error durante el analisis del proyecto "+projectKey)
-        else:
-            db.guardarValoresSQ(projectKey)
+        #else:
+            #db.guardarValoresSQ(projectKey)
 
 
         #time = str(datetime.now().time())

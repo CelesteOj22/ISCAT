@@ -20,7 +20,7 @@ print("Comenzando el analisis de "+str(len(os.listdir(dir)))+" proyectos")#+"\n"
 for proyecto in directorio.iterdir():
     sonar.analizar('D:/sonar/sonar-scanner-4.7.0.2747-windows/bin/sonar-scanner.bat',proyecto.__str__())
     #print(proyecto.__str__())
-#    source.analizar('D:\sonar\SourceMeter-10.0.0-x64-Windows\Java\SourceMeterJava.exe',proyecto.__str__())
+    source.analizar('D:\sonar\SourceMeter-10.0.0-x64-Windows\Java\SourceMeterJava.exe',proyecto.__str__())
 
 
 

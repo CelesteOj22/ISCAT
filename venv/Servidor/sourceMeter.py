@@ -29,5 +29,5 @@ class SourceMeter(IHerramienta):
             print("El proyecto " + projectKey + " ha sido analizado con exito!\nGuardando los datos del proyecto...")
         except:
             print("Ha ocurrido un error durante el analisis del proyecto " + projectKey)
-        else:
-            db.guardarValoresSM(projectName, projectKey)
+        #else:
+            #db.guardarValoresSM(projectName, projectKey)
