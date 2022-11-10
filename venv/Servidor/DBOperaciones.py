@@ -206,17 +206,17 @@ def guardarValoresSM(projectName, projectKey):
     insertComponentMeasuresSM(path, projectKey)
 
 def guardarValoresSQ(projectKey):
-    print('empiezaaa guardar')
+    #print('empiezaaa guardar')
     lastAnalysis = api.getLastAnalysisSQ(projectKey)
-    print('lastAnalisys vieja')
+    #print('lastAnalisys vieja')
     fechahora = fechaHoraSQ(lastAnalysis)
-    print(fechahora)
-    api.insertProjectSQ(projectKey,fechahora)
-    print('insert viejaaa')
+    #print(fechahora)
+    #api.insertProjectSQ(projectKey,fechahora)
+    #print('insert viejaaa')
     api.insertProjectMeasuresSQ(projectKey)
-    print('project measures viejaaa')
+    #print('project measures viejaaa')
     api.insertComponentSQ(projectKey)
-    print('component viejaaa')
+    #print('component viejaaa')
     api.insertComponentMeasuresSQ(projectKey)
 
 #SonarQube
@@ -348,36 +348,107 @@ def getQualifierSM(file: str):
     return qualifier
 
 
-
-
-
 #addapt numpy
 def addapt_numpy_float64(numpy_float64):
     return AsIs(numpy_float64)
 def addapt_numpy_int64(numpy_int64):
     return AsIs(numpy_int64)
 
+def fechaHoraSQ(lastAnalysis):
+    sep = lastAnalysis.split('T')
+    fechahora = sep[0] + ' ' + sep[1].split('-')[0]
+    return fechahora
 
-"""
-    #postgres_insert_query =  INSERT INTO mobile (ID, MODEL, PRICE) VALUES (%s,%s,%s)
-    #record_to_insert = (5, 'One Plus 6', 950)
-    #cursor.execute(postgres_insert_query, record_to_insert)
-
-    #connection.commit()
-    #count = cursor.rowcount
-    #print(count, "Record inserted successfully into mobile table")
-
-
-
-
-#    def print(self,campo):#plantear mejor
-#        for campo in cur.fetchall():
-#            print(campo)
+def insertProjectSQ(projectKey,fechahora):
+    if projectExists(projectKey):
+        updateProject(projectKey,fechahora,'sq')
+    else:
+        key = api.getProjectSQ(projectKey)
+        insertProject(key['key'],projectKey,fechahora,'sq')
 
 
-#conexionSonar = psycopg2.connect(database="Sonar", user="postgres", password="1234")
-conexionPrueba = psycopg2.connect(database="scat_prueba", user="postgres", password="1234")
-cur = conexionPrueba.cursor()
+def insertComponentSQ(projectKey):
+    try:
+        con = getConexion()
+        cur = cursor(con)
+        components = api.getComponentsSQ(projectKey)
+        cur.execute("select * from projects where name like %s", (projectKey,))  # datos del proyecto guardado en projects
+        id_project = cur.fetchone()  # agarra el primero
+        for c in components:
+            if componentExists((c)['path']):
+                pass
+            else:
+                insertComponent((id_project[0],(c)['qualifier'],(c)['path'],(c)['key']))
+    except (Exception, psycopg2.Error) as error:
+        print("Failed to insert components", error)
+    else:
+        print("List of components inserted successfully into table")
+    finally:
+        closeCon(cur, con)
 
 
-"""
+
+def insertMetricSQ():
+    #revisar despues por valores repetidos
+    metrics = api.getMetricsSQ()
+    for m in metrics:
+        try:
+            insertMetric(((m)['name'], (m)['description'], (m)['domain'], 'SonarQube', (m)['key']))
+        except:
+            insertMetric(((m)['name'], (m)['name'], (m)['domain'], 'SonarQube', (m)['key']))
+
+
+
+def insertProjectMeasuresSQ(projectKey):
+    # Increase the maximum number of rows to display the entire DataFrame
+    try:
+        con = getConexion()
+        cur = cursor(con)
+        cur.execute("select * from projects where name like %s",(projectKey,))  # datos del proyecto guardado en projects
+        id_project = cur.fetchone()  # agarra el primero
+        cur.execute("Select id_metric,key from metrics where tool like 'SonarQube'")  # todas los ids y nombres de metricas guardadas en metrics
+        metricsbd = cur.fetchall()
+        for metric in metricsbd:  # por cada metrica
+            try:
+                value = api.getMeasureSQ(projectKey,metric[1],'TRK')
+            except:
+                pass
+            else:
+                insertProjectMeasures((metric[0], id_project[0], value))
+            pass
+    except (Exception, psycopg2.Error) as error:
+        print("Failed to insert project measures", error)
+    else:
+        print("List of project measures inserted successfully into table")
+    finally:
+        closeCon(cur, con)
+
+
+def insertComponentMeasuresSQ(projectKey):
+    # Increase the maximum number of rows to display the entire DataFrame
+    try:
+        con = getConexion()
+        cur = cursor(con)
+        cur.execute("select * from projects where name like %s", (projectKey,))  # datos del proyecto guardado en projects
+        id_project = cur.fetchone()  # agarra el primero
+        cur.execute("Select id_metric,key from metrics where tool like 'SonarQube'")
+        metrics = cur.fetchall()  # todas los ids y nombres de metricas guardadas en metrics
+        cur.execute("select id_component,key,qualifier from components where id_project = %s",(id_project[0],))
+        components = cur.fetchall()
+        for component in components:
+            for metric in metrics:  # por cada metrica
+                try:
+                    value = api.getMeasureSQ(projectKey,metric[1],component[2])
+                except:
+                    pass
+                else:
+                    if value is None:
+                        pass
+                    else:
+                        insertComponentMeasures(metric[0], component[0], value)
+    except (Exception, psycopg2.Error) as error:
+        print("Failed to insert component measures", error)
+    else:
+        print("List of metrics inserted successfully into table")
+    finally:
+        closeCon(cur, con)

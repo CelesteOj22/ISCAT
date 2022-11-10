@@ -26,7 +26,7 @@ class SourceMeter(IHerramienta):
         try:
             # print("\nnalisis con SourceMeter 10.0 \n Iniciando analisis del proyecto: " + projectkey)
             stdout = subprocess.run(comando, stdout=subprocess.PIPE, universal_newlines=True, check=True, text=True,shell=True).stdout
-            print("El proyecto " + projectKey + " ha sido analizado con exito!\nGuardando los datos del proyecto...")
+            print("El proyecto " + projectKey + " ha sido analizado por SourceMeter con exito!")
         except:
             print("Ha ocurrido un error durante el analisis del proyecto " + projectKey)
         #else:

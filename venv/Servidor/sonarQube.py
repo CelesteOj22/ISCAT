@@ -24,7 +24,7 @@ class SonarQube(IHerramienta):
             #print("\nAnalisis con SonarQube-8.9.8 \nIniciando analisis del proyecto: " + projectkey)
             stdout = subprocess.run(comando, stdout=subprocess.PIPE, universal_newlines=True, check=True, text=True,shell=True).stdout
             if 'EXECUTION SUCCESS' in stdout:
-                print("El proyecto " + projectKey + " ha sido analizado con exito!")
+                print("El proyecto " + projectKey + " ha sido analizado por Sonar Qube con exito!")
         except:
             print("Ha ocurrido un error durante el analisis del proyecto "+projectKey)
         #else:
